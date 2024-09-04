@@ -1,2 +1,2 @@
 # rate-my-media
-Web application for rating and ranking media
+Go API for rating movies, tv shows, games, books, and albums.
