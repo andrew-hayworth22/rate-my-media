@@ -2,6 +2,7 @@ package app
 
 import (
 	"os"
+	"strings"
 
 	"github.com/andrew-hayworth22/rate-my-media/business"
 	"github.com/joho/godotenv"
@@ -10,14 +11,17 @@ import (
 type App struct {
 	PortAddress string
 	jwtSecret   string
-	bus         business.BusinessLayer
+	bus         business.BusLayer
 }
 
-func NewApp(bus business.BusinessLayer) *App {
+func NewApp(bus business.BusLayer) *App {
 	godotenv.Load()
 
+	portAddress := os.Getenv("PORT_ADDRESS")
+	portAddress = strings.Trim(portAddress, "\"")
+
 	return &App{
-		PortAddress: os.Getenv("PORT_ADDRESS"),
+		PortAddress: portAddress,
 		jwtSecret:   os.Getenv("JWT_SECRET"),
 		bus:         bus,
 	}
