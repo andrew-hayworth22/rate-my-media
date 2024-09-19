@@ -8,7 +8,13 @@ import (
 
 func NewServer(
 	cfg core.Config,
-	authStore *auth.Store,
-) *http.Handler {
+	authStore auth.Store,
+) http.Handler {
+	mux := http.NewServeMux()
 
+	AddRoutes(mux, cfg, authStore)
+
+	var handler http.Handler = mux
+
+	return handler
 }

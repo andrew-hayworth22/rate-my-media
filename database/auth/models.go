@@ -9,7 +9,6 @@ type DbUser struct {
 }
 
 type DbStoreUserRequest struct {
-	Id          int
 	Email       string
 	Name        string
 	DisplayName string

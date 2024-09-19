@@ -6,14 +6,7 @@ import (
 	"net/http"
 )
 
-type AppUser struct {
-	Id          int    `json:"id"`
-	Email       string `json:"email"`
-	Name        string `json:"name"`
-	DisplayName string `json:"display_name"`
-}
-
-func HandlePostUser(authStore auth.Store, cfg core.Config) http.Handler {
+func HandlePostUser(authStore auth.Store) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var req PostUserRequest
@@ -27,7 +20,12 @@ func HandlePostUser(authStore auth.Store, cfg core.Config) http.Handler {
 				return
 			}
 
-			dbUser, err := authStore.StoreUser(r.Context(), auth.DbStoreUserRequest{})
+			dbUser, err := authStore.StoreUser(r.Context(), auth.DbStoreUserRequest{
+				Email:       req.Email,
+				Name:        req.Name,
+				DisplayName: req.DisplayName,
+				Password:    req.Password,
+			})
 			if err != nil {
 				core.EncodeInternalError(w)
 				return

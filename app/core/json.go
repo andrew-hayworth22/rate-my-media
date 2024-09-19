@@ -7,13 +7,12 @@ import (
 )
 
 func Encode[T any](w http.ResponseWriter, status int, data T) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		EncodeInternalError(w)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
 }
 
 func EncodeInternalError(w http.ResponseWriter) {

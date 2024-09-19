@@ -7,6 +7,6 @@ import (
 	"net/http"
 )
 
-func AddRoutes(mux *http.ServeMux, authStore authDb.Store, cfg core.Config) {
-	mux.Handle("/api/login", authHandlers.HandlePostUser(authStore, cfg))
+func AddRoutes(mux *http.ServeMux, cfg core.Config, authStore authDb.Store) {
+	mux.Handle("/api/users", authHandlers.HandlePostUser(authStore))
 }

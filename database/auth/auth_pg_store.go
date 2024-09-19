@@ -2,21 +2,15 @@ package auth
 
 import (
 	"context"
-	"golang.org/x/crypto/bcrypt"
-	"os"
-
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type StorePg struct {
 	dbUrl string
 }
 
-func NewStorePg() *StorePg {
-	godotenv.Load()
-	dbUrl := os.Getenv("DATABASE_URL")
-
+func NewAuthStorePg(dbUrl string) *StorePg {
 	return &StorePg{
 		dbUrl: dbUrl,
 	}
@@ -29,6 +23,7 @@ func (asp *StorePg) Connect() (*pgx.Conn, error) {
 	}
 	return conn, nil
 }
+
 func (asp *StorePg) StoreUser(ctx context.Context, req DbStoreUserRequest) (DbUser, error) {
 	conn, err := asp.Connect()
 	if err != nil {
@@ -36,17 +31,21 @@ func (asp *StorePg) StoreUser(ctx context.Context, req DbStoreUserRequest) (DbUs
 	}
 	defer conn.Close(ctx)
 
-	conn.Begin(ctx)
-
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return DbUser{}, err
 	}
 	req.Password = string(encryptedPassword)
 
+	transaction, err := conn.Begin(ctx)
+	if err != nil {
+		return DbUser{}, err
+	}
+	defer transaction.Rollback(ctx)
+
 	sql := `
-		insert into users (email, name, display_name, password)
-		values(@email, @name, @display_name, @password)
+		insert into users (email, name, display_name, password, created_on)
+		values(@email, @name, @display_name, @password, NOW())
 		returning id
 	`
 	args := pgx.NamedArgs{
@@ -57,6 +56,10 @@ func (asp *StorePg) StoreUser(ctx context.Context, req DbStoreUserRequest) (DbUs
 	}
 	var id int
 	if err = conn.QueryRow(ctx, sql, args).Scan(&id); err != nil {
+		return DbUser{}, err
+	}
+
+	if err := transaction.Commit(ctx); err != nil {
 		return DbUser{}, err
 	}
 
