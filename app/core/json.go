@@ -23,6 +23,10 @@ func EncodeValidationError(w http.ResponseWriter, problems map[string]string) {
 	Encode(w, http.StatusBadRequest, problems)
 }
 
+func EncodeUnauthorized(w http.ResponseWriter) {
+	Encode(w, http.StatusUnauthorized, "Unauthorized")
+}
+
 func Decode[T any](r *http.Request) (T, error) {
 	var result T
 	if err := json.NewDecoder(r.Body).Decode(&result); err != nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type JWTFields struct {
-	userId int
+	UserId int
 }
 
 type JWTClaims struct {

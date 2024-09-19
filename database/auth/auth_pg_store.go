@@ -71,3 +71,28 @@ func (asp *StorePg) StoreUser(ctx context.Context, req DbStoreUserRequest) (DbUs
 		PasswordHash: req.Password,
 	}, nil
 }
+
+func (asp *StorePg) GetUserByEmail(ctx context.Context, email string) (DbUser, error) {
+	conn, err := asp.Connect()
+	if err != nil {
+		return DbUser{}, err
+	}
+	defer conn.Close(ctx)
+
+	sql := `
+		select id, email, name, display_name, password
+		from users
+		where email = $1;
+	`
+	rows, err := conn.Query(ctx, sql, email)
+	if err != nil {
+		return DbUser{}, err
+	}
+
+	user, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[DbUser])
+	if err != nil {
+		return DbUser{}, err
+	}
+
+	return user, nil
+}
