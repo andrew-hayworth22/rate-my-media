@@ -28,3 +28,4 @@ go.work.sum
 # Text editor configs
 .idea
 .jetclient
+.vscode

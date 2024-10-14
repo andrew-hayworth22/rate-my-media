@@ -2,26 +2,30 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"github.com/andrew-hayworth22/rate-my-media/app"
-	"github.com/andrew-hayworth22/rate-my-media/app/core"
-	"github.com/andrew-hayworth22/rate-my-media/database/auth"
-	"github.com/joho/godotenv"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/andrew-hayworth22/rate-my-media/app"
+	"github.com/andrew-hayworth22/rate-my-media/app/core"
+	"github.com/andrew-hayworth22/rate-my-media/database/auth"
+	"github.com/andrew-hayworth22/rate-my-media/migrate"
+	"github.com/joho/godotenv"
 )
 
 func run(ctx context.Context, w io.Writer, args []string, getenv func(string) string) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
+	dbUrl := getenv("DATABASE_URL")
 	cfg := core.Config{
 		JwtSecret: getenv("JWT_SECRET"),
 	}
 
-	handler := app.NewServer(cfg, auth.NewAuthStorePg(getenv("DATABASE_URL")))
+	handler := app.NewServer(cfg, auth.NewAuthStorePg(dbUrl))
 
 	port := getenv("PORT")
 	server := http.Server{
@@ -37,9 +41,19 @@ func run(ctx context.Context, w io.Writer, args []string, getenv func(string) st
 
 func main() {
 	ctx := context.Background()
+
 	if err := godotenv.Load(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading .env file")
 		os.Exit(1)
+	}
+
+	migrateFlag := flag.Bool("migrate", false, "Run all outstanding migrations")
+	migrateFreshFlag := flag.Bool("migrate-fresh", false, "Clear database and run all migrations")
+	flag.Parse()
+	if *migrateFlag {
+		migrate.MigrateDB(ctx, os.Getenv, false)
+	} else if *migrateFreshFlag {
+		migrate.MigrateDB(ctx, os.Getenv, true)
 	}
 
 	if err := run(ctx, os.Stdout, os.Args, os.Getenv); err != nil {

@@ -1,23 +1,23 @@
-package main
+package migrate
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
 )
 
-var MIGRATIONS_DIR = "./database/migrate/migrations"
+type Migrator interface {
+	WipeDB() error
+}
 
-func main() {
-	ctx := context.Background()
-	godotenv.Load()
-	dbUrl := os.Getenv("DATABASE_URL")
+var MigrationsDir = "./migrate/migrations"
+
+func MigrateDB(ctx context.Context, getenv func(string) string, fresh bool) {
+	dbUrl := getenv("DATABASE_URL")
 
 	conn, err := pgx.Connect(ctx, dbUrl)
 	if err != nil {
@@ -26,11 +26,8 @@ func main() {
 	}
 	defer conn.Close(ctx)
 
-	fresh := flag.Bool("fresh", false, "Drop all tables and rerun all migrations")
-	flag.Parse()
-
-	if *fresh {
-		if err := WipeDB(ctx, conn); err != nil {
+	if fresh {
+		if err := wipeDB(ctx, conn); err != nil {
 			fmt.Println(err)
 			return
 		}
@@ -38,8 +35,8 @@ func main() {
 
 	fmt.Println("Running migrations...")
 
-	migrationsRun := GetRunMigrations(ctx, conn)
-	migrationFileNames := GetMigrationFileNames()
+	migrationsRun := getRunMigrations(ctx, conn)
+	migrationFileNames := getMigrationFileNames()
 
 	var numRan int
 	var numSkipped int
@@ -48,7 +45,7 @@ func main() {
 			fmt.Printf("%s: already ran...\n", migrationFileName)
 			numSkipped++
 		} else {
-			if err := RunMigration(ctx, migrationFileName, conn); err != nil {
+			if err := runMigration(ctx, migrationFileName, conn); err != nil {
 				fmt.Printf("error: %s\n", err)
 			}
 			numRan++
@@ -58,7 +55,22 @@ func main() {
 	fmt.Printf("%d migrations skipped\n", numSkipped)
 }
 
-func GetRunMigrations(ctx context.Context, conn *pgx.Conn) map[string]bool {
+func wipeDB(ctx context.Context, conn *pgx.Conn) error {
+	path := fmt.Sprintf("%s/_wipe.sql", MigrationsDir)
+	wipe, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Exec(ctx, string(wipe))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Successfully wiped database...")
+	return nil
+}
+func getRunMigrations(ctx context.Context, conn *pgx.Conn) map[string]bool {
 	rows, err := conn.Query(ctx, "select name from migrations")
 	if err != nil {
 		if err.Error() != "ERROR: relation \"migrations\" does not exist (SQLSTATE 42P01)" {
@@ -66,20 +78,20 @@ func GetRunMigrations(ctx context.Context, conn *pgx.Conn) map[string]bool {
 		}
 	}
 
-	files_run := map[string]bool{}
+	filesRun := map[string]bool{}
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {
 			fmt.Println("error reading migration table")
 			break
 		}
-		files_run[name] = true
+		filesRun[name] = true
 	}
-	return files_run
+	return filesRun
 }
 
-func GetMigrationFileNames() []string {
-	entries, err := os.ReadDir(MIGRATIONS_DIR)
+func getMigrationFileNames() []string {
+	entries, err := os.ReadDir(MigrationsDir)
 	if err != nil {
 		fmt.Printf("error reading entries: %s\n", err)
 	}
@@ -95,8 +107,8 @@ func GetMigrationFileNames() []string {
 	return fileNames
 }
 
-func RunMigration(ctx context.Context, fileName string, conn *pgx.Conn) error {
-	path := fmt.Sprintf("%s/%s", MIGRATIONS_DIR, fileName)
+func runMigration(ctx context.Context, fileName string, conn *pgx.Conn) error {
+	path := fmt.Sprintf("%s/%s", MigrationsDir, fileName)
 	migration, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -119,21 +131,5 @@ func RunMigration(ctx context.Context, fileName string, conn *pgx.Conn) error {
 		return err
 	}
 	fmt.Printf("%s: successfully executed\n", fileName)
-	return nil
-}
-
-func WipeDB(ctx context.Context, conn *pgx.Conn) error {
-	path := fmt.Sprintf("%s/_wipe.sql", MIGRATIONS_DIR)
-	wipe, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-
-	_, err = conn.Exec(ctx, string(wipe))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Successfully wiped database...")
 	return nil
 }
