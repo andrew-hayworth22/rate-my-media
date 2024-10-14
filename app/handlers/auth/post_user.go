@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
 	"github.com/andrew-hayworth22/rate-my-media/database/auth"
-	"net/http"
 )
 
 func HandlePostUser(authStore auth.Store) http.Handler {
@@ -17,6 +19,20 @@ func HandlePostUser(authStore auth.Store) http.Handler {
 			}
 			if len(problems) > 0 {
 				core.EncodeValidationError(w, problems)
+				return
+			}
+
+			existingUser, err := authStore.GetUserByEmail(r.Context(), req.Email)
+			if err != nil {
+				core.EncodeInternalError(w)
+				fmt.Printf("%v\n", err)
+				return
+			}
+
+			if existingUser.Id != 0 {
+				core.EncodeValidationError(w, map[string]string{
+					"email": "This email already has an account associated with it",
+				})
 				return
 			}
 

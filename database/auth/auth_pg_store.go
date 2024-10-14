@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"errors"
+
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -91,6 +93,9 @@ func (asp *StorePg) GetUserByEmail(ctx context.Context, email string) (DbUser, e
 
 	user, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[DbUser])
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return DbUser{}, nil
+		}
 		return DbUser{}, err
 	}
 
