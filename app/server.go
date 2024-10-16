@@ -5,13 +5,13 @@ import (
 
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
 	"github.com/andrew-hayworth22/rate-my-media/database/auth"
-	"github.com/andrew-hayworth22/rate-my-media/database/media"
+	"github.com/andrew-hayworth22/rate-my-media/database/movies"
 )
 
 func NewServer(
 	cfg core.Config,
 	authStore auth.Store,
-	movieStore media.MovieStore,
+	movieStore movies.MovieStore,
 ) http.Handler {
 	mux := http.NewServeMux()
 

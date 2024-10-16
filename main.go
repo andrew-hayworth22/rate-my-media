@@ -12,12 +12,12 @@ import (
 	"github.com/andrew-hayworth22/rate-my-media/app"
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
 	"github.com/andrew-hayworth22/rate-my-media/database/auth"
-	"github.com/andrew-hayworth22/rate-my-media/database/media"
+	"github.com/andrew-hayworth22/rate-my-media/database/movies"
 	"github.com/andrew-hayworth22/rate-my-media/migrate"
 	"github.com/joho/godotenv"
 )
 
-func run(ctx context.Context, w io.Writer, args []string, getenv func(string) string) error {
+func run(ctx context.Context, w io.Writer, getenv func(string) string) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
@@ -26,7 +26,7 @@ func run(ctx context.Context, w io.Writer, args []string, getenv func(string) st
 		JwtSecret: getenv("JWT_SECRET"),
 	}
 
-	handler := app.NewServer(cfg, auth.NewAuthStorePg(dbUrl), media.NewMovieStorePg(dbUrl))
+	handler := app.NewServer(cfg, auth.NewAuthStorePg(dbUrl), movies.NewMovieStorePg(dbUrl))
 
 	port := getenv("PORT")
 	server := http.Server{
@@ -57,7 +57,7 @@ func main() {
 		migrate.MigrateDB(ctx, os.Getenv, true)
 	}
 
-	if err := run(ctx, os.Stdout, os.Args, os.Getenv); err != nil {
+	if err := run(ctx, os.Stdout, os.Getenv); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

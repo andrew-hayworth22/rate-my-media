@@ -5,15 +5,16 @@ import (
 
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
 	authHandlers "github.com/andrew-hayworth22/rate-my-media/app/handlers/auth"
-	"github.com/andrew-hayworth22/rate-my-media/app/handlers/movies"
+	moviesHandlers "github.com/andrew-hayworth22/rate-my-media/app/handlers/movies"
 	authDb "github.com/andrew-hayworth22/rate-my-media/database/auth"
-	"github.com/andrew-hayworth22/rate-my-media/database/media"
+	moviesDb "github.com/andrew-hayworth22/rate-my-media/database/movies"
 )
 
-func AddRoutes(mux *http.ServeMux, cfg core.Config, authStore authDb.Store, movieStore media.MovieStore) {
-	mux.Handle("/api/users", core.Post(authHandlers.HandlePostUser(authStore)))
-	mux.Handle("/api/login", core.Post(authHandlers.HandleLogin(cfg, authStore)))
+func AddRoutes(mux *http.ServeMux, cfg core.Config, authStore authDb.Store, movieStore moviesDb.MovieStore) {
+	mux.Handle("POST /api/users", core.Post(authHandlers.HandlePostUser(authStore)))
+	mux.Handle("POST /api/login", core.Post(authHandlers.HandleLogin(cfg, authStore)))
 
-	mux.Handle("/api/movies", core.Post(movies.HandlePostMovie(movieStore)))
-	mux.Handle("/api/movies/{id}", core.Get(movies.HandleGetMovie(movieStore)))
+	mux.Handle("GET /api/movies", moviesHandlers.HandleGetMovies(movieStore))
+	mux.Handle("GET /api/movies/{id}", moviesHandlers.HandleGetMovie(movieStore))
+	mux.Handle("POST /api/movies", moviesHandlers.HandlePostMovie(movieStore))
 }

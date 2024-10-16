@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
-	"github.com/andrew-hayworth22/rate-my-media/database/media"
+	"github.com/andrew-hayworth22/rate-my-media/database/movies"
 )
 
 type PostMovieRequest struct {
@@ -40,7 +40,7 @@ func (req PostMovieRequest) Valid(ctx context.Context) (problems map[string]stri
 	return problems
 }
 
-func HandlePostMovie(movieStore media.MovieStore) http.Handler {
+func HandlePostMovie(movieStore movies.MovieStore) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var req PostMovieRequest
@@ -60,7 +60,7 @@ func HandlePostMovie(movieStore media.MovieStore) http.Handler {
 				return
 			}
 
-			dbMovie, err := movieStore.StoreMovie(r.Context(), media.DbStoreMovieRequest{
+			dbMovie, err := movieStore.StoreMovie(r.Context(), movies.DbStoreMovieRequest{
 				Name:           req.Name,
 				Description:    req.Description,
 				ReleaseDate:    parsedDate,
