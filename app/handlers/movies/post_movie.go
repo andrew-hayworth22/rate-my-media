@@ -73,10 +73,10 @@ func HandlePostMovie(movieStore media.MovieStore) http.Handler {
 			}
 
 			appMovie := AppMovie{
-				Id:             dbMovie.Media.Id,
-				Name:           dbMovie.Media.Name,
-				Description:    dbMovie.Media.Description,
-				ReleaseDate:    dbMovie.Media.ReleaseDate,
+				Id:             dbMovie.Id,
+				Name:           dbMovie.Name,
+				Description:    dbMovie.Description,
+				ReleaseDate:    dbMovie.ReleaseDate,
 				RuntimeMinutes: dbMovie.RuntimeMinutes,
 			}
 			core.Encode(w, http.StatusOK, appMovie)

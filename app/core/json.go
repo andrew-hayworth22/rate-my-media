@@ -19,6 +19,10 @@ func EncodeInternalError(w http.ResponseWriter) {
 	Encode(w, http.StatusInternalServerError, "An internal error has occurred")
 }
 
+func EncodeNotFound(w http.ResponseWriter) {
+	Encode(w, http.StatusNotFound, "")
+}
+
 func EncodeValidationError(w http.ResponseWriter, problems map[string]string) {
 	Encode(w, http.StatusBadRequest, problems)
 }

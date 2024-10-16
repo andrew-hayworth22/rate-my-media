@@ -25,16 +25,16 @@ var MEDIA_TYPE_TV_SHOW = DbMediaType{
 }
 
 type DbMedia struct {
-	Id          int
-	MediaType   DbMediaType
-	Name        string
-	Description string
-	ReleaseDate time.Time
+	Id          int         `db:"id"`
+	MediaType   DbMediaType `db:"-"`
+	Name        string      `db:"name"`
+	Description string      `db:"description"`
+	ReleaseDate time.Time   `db:"release_date"`
 }
 
 type DbMovie struct {
-	Media          DbMedia
-	RuntimeMinutes int
+	DbMedia
+	RuntimeMinutes int `db:"runtime_minutes"`
 }
 
 type DbVideoGame struct {

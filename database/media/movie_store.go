@@ -2,12 +2,14 @@ package media
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 )
 
 type MovieStore interface {
 	StoreMovie(ctx context.Context, req DbStoreMovieRequest) (DbMovie, error)
+	GetMovieById(ctx context.Context, id int) (DbMovie, error)
 }
 
 type PgMovieStore struct {
@@ -74,7 +76,7 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 	}
 
 	return DbMovie{
-		Media: DbMedia{
+		DbMedia: DbMedia{
 			Id:          id,
 			MediaType:   MEDIA_TYPE_MOVIE,
 			Name:        req.Name,
@@ -83,4 +85,35 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 		},
 		RuntimeMinutes: req.RuntimeMinutes,
 	}, nil
+}
+
+func (msp *PgMovieStore) GetMovieById(ctx context.Context, id int) (DbMovie, error) {
+	conn, err := msp.Connect()
+	if err != nil {
+		return DbMovie{}, err
+	}
+	defer conn.Close(ctx)
+
+	sql := `
+		select media.id as id, media.name as name, media.description as description, media.release_date as release_date, movies.runtime_minutes as runtime_minutes
+		from movies
+		join media on movies.id = media.id
+		where movies.id = $1;
+	`
+	rows, err := conn.Query(ctx, sql, id)
+	if err != nil {
+		return DbMovie{}, err
+	}
+
+	movie, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[DbMovie])
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return DbMovie{}, nil
+		}
+		return DbMovie{}, err
+	}
+
+	movie.MediaType = MEDIA_TYPE_MOVIE
+
+	return movie, nil
 }

@@ -15,4 +15,5 @@ func AddRoutes(mux *http.ServeMux, cfg core.Config, authStore authDb.Store, movi
 	mux.Handle("/api/login", core.Post(authHandlers.HandleLogin(cfg, authStore)))
 
 	mux.Handle("/api/movies", core.Post(movies.HandlePostMovie(movieStore)))
+	mux.Handle("/api/movies/{id}", core.Get(movies.HandleGetMovie(movieStore)))
 }
