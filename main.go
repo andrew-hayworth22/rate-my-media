@@ -12,6 +12,7 @@ import (
 	"github.com/andrew-hayworth22/rate-my-media/app"
 	"github.com/andrew-hayworth22/rate-my-media/app/core"
 	"github.com/andrew-hayworth22/rate-my-media/database/auth"
+	"github.com/andrew-hayworth22/rate-my-media/database/media"
 	"github.com/andrew-hayworth22/rate-my-media/migrate"
 	"github.com/joho/godotenv"
 )
@@ -25,7 +26,7 @@ func run(ctx context.Context, w io.Writer, args []string, getenv func(string) st
 		JwtSecret: getenv("JWT_SECRET"),
 	}
 
-	handler := app.NewServer(cfg, auth.NewAuthStorePg(dbUrl))
+	handler := app.NewServer(cfg, auth.NewAuthStorePg(dbUrl), media.NewMovieStorePg(dbUrl))
 
 	port := getenv("PORT")
 	server := http.Server{

@@ -1,5 +1,9 @@
-drop table logs;
-drop table media;
-drop table media_type;
-drop table users;
-drop table migrations;
+drop table if exists logs;
+drop table if exists movies;
+drop table if exists video_games;
+drop table if exists books;
+drop table if exists tv_shows;
+drop table if exists media;
+drop table if exists media_types;
+drop table if exists users;
+drop table if exists migrations;

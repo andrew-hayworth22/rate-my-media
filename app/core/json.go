@@ -42,7 +42,7 @@ func DecodeValid[T Validator](r *http.Request, data T) (T, map[string]string, er
 		return result, nil, fmt.Errorf("decode error: %w", err)
 	}
 	if problems := result.Valid(r.Context()); len(problems) > 0 {
-		return result, problems, fmt.Errorf("invalid %T: %d problems", result, len(problems))
+		return result, problems, nil
 	}
 	return result, nil, nil
 }
