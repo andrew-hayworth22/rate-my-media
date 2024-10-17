@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/andrew-hayworth22/rate-my-media/database"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -62,7 +63,7 @@ func (msp *PgMovieStore) GetMovieById(ctx context.Context, id int) (DbMovie, err
 		return DbMovie{}, err
 	}
 
-	movie.MediaType = MEDIA_TYPE_MOVIE
+	movie.MediaType = database.MEDIA_TYPE_MOVIE
 
 	return movie, nil
 }

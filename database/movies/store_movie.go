@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/andrew-hayworth22/rate-my-media/database"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -33,7 +34,7 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 		returning id;
 	`
 	args := pgx.NamedArgs{
-		"media_type_id": MEDIA_TYPE_MOVIE.Id,
+		"media_type_id": database.MEDIA_TYPE_MOVIE.Id,
 		"name":          req.Name,
 		"description":   req.Description,
 		"release_date":  req.ReleaseDate,
@@ -60,9 +61,9 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 	}
 
 	return DbMovie{
-		DbMedia: DbMedia{
+		DbMedia: database.DbMedia{
 			Id:          id,
-			MediaType:   MEDIA_TYPE_MOVIE,
+			MediaType:   database.MEDIA_TYPE_MOVIE,
 			Name:        req.Name,
 			Description: req.Description,
 			ReleaseDate: req.ReleaseDate,

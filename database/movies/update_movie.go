@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/andrew-hayworth22/rate-my-media/database"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -63,9 +64,9 @@ func (msp *PgMovieStore) UpdateMovie(ctx context.Context, req DbUpdateMovieReque
 	}
 
 	return DbMovie{
-		DbMedia: DbMedia{
+		DbMedia: database.DbMedia{
 			Id:          req.Id,
-			MediaType:   MEDIA_TYPE_MOVIE,
+			MediaType:   database.MEDIA_TYPE_MOVIE,
 			Name:        req.Name,
 			Description: req.Description,
 			ReleaseDate: req.ReleaseDate,
