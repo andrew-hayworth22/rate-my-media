@@ -7,14 +7,15 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type DbStoreMovieRequest struct {
+type DbUpdateMovieRequest struct {
+	Id             int
 	Name           string
 	Description    string
 	ReleaseDate    time.Time
 	RuntimeMinutes int
 }
 
-func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest) (DbMovie, error) {
+func (msp *PgMovieStore) UpdateMovie(ctx context.Context, req DbUpdateMovieRequest) (DbMovie, error) {
 	conn, err := msp.Connect()
 	if err != nil {
 		return DbMovie{}, err
@@ -28,29 +29,31 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 	defer transaction.Rollback(ctx)
 
 	sql := `
-		insert into media (media_type_id, name, description, release_date)
-		values (@media_type_id, @name, @description, @release_date)
-		returning id;
+		update media
+		set name = @name, description = @description, release_date = @release_date
+		where id = @id;
 	`
 	args := pgx.NamedArgs{
-		"media_type_id": MEDIA_TYPE_MOVIE.Id,
-		"name":          req.Name,
-		"description":   req.Description,
-		"release_date":  req.ReleaseDate,
+		"id":           req.Id,
+		"name":         req.Name,
+		"description":  req.Description,
+		"release_date": req.ReleaseDate,
 	}
-	var id int
-	if err = conn.QueryRow(ctx, sql, args).Scan(&id); err != nil {
+
+	if _, err := conn.Exec(ctx, sql, args); err != nil {
 		return DbMovie{}, err
 	}
 
 	sql = `
-		insert into movies (id, runtime_minutes)
-		values (@id, @runtime_minutes)
+		update movies
+		set runtime_minutes = @runtime_minutes
+		where id = @id;
 	`
 	args = pgx.NamedArgs{
-		"id":              id,
+		"id":              req.Id,
 		"runtime_minutes": req.RuntimeMinutes,
 	}
+
 	if _, err := conn.Exec(ctx, sql, args); err != nil {
 		return DbMovie{}, err
 	}
@@ -61,7 +64,7 @@ func (msp *PgMovieStore) StoreMovie(ctx context.Context, req DbStoreMovieRequest
 
 	return DbMovie{
 		DbMedia: DbMedia{
-			Id:          id,
+			Id:          req.Id,
 			MediaType:   MEDIA_TYPE_MOVIE,
 			Name:        req.Name,
 			Description: req.Description,

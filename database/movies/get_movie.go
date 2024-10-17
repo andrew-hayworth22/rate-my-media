@@ -17,7 +17,8 @@ func (msp *PgMovieStore) GetMovies(ctx context.Context) ([]DbMovie, error) {
 	sql := `
 		select media.id as id, media.name as name, media.description as description, media.release_date as release_date, movies.runtime_minutes as runtime_minutes
 		from movies
-		join media on movies.id = media.id;
+		join media on movies.id = media.id
+		order by media.name;
 	`
 	rows, err := conn.Query(ctx, sql)
 	if err != nil {

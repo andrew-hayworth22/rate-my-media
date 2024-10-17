@@ -1,6 +1,7 @@
 package core
 
 import (
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -35,7 +36,9 @@ func GenerateJWT(cfg Config, jwtFields JWTFields) (string, error) {
 }
 
 func DecodeJWT(cfg Config, tok string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
+	splitToken := strings.Split(tok, "Bearer ")
+
+	token, err := jwt.Parse(splitToken[1], func(t *jwt.Token) (interface{}, error) {
 		return []byte(cfg.JwtSecret), nil
 	})
 	if err != nil {

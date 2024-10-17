@@ -11,10 +11,11 @@ import (
 )
 
 func AddRoutes(mux *http.ServeMux, cfg core.Config, authStore authDb.Store, movieStore moviesDb.MovieStore) {
-	mux.Handle("POST /api/users", core.Post(authHandlers.HandlePostUser(authStore)))
-	mux.Handle("POST /api/login", core.Post(authHandlers.HandleLogin(cfg, authStore)))
+	mux.Handle("POST /api/users", authHandlers.HandlePostUser(authStore))
+	mux.Handle("POST /api/login", authHandlers.HandleLogin(cfg, authStore))
 
 	mux.Handle("GET /api/movies", moviesHandlers.HandleGetMovies(movieStore))
 	mux.Handle("GET /api/movies/{id}", moviesHandlers.HandleGetMovie(movieStore))
-	mux.Handle("POST /api/movies", moviesHandlers.HandlePostMovie(movieStore))
+	mux.Handle("POST /api/movies", core.Authenticated(cfg, moviesHandlers.HandlePostMovie(movieStore)))
+	mux.Handle("PUT /api/movies/{id}", core.Authenticated(cfg, moviesHandlers.HandlePutMovie(movieStore)))
 }

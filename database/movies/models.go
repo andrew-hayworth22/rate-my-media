@@ -11,6 +11,7 @@ type MovieStore interface {
 	StoreMovie(ctx context.Context, req DbStoreMovieRequest) (DbMovie, error)
 	GetMovies(ctx context.Context) ([]DbMovie, error)
 	GetMovieById(ctx context.Context, id int) (DbMovie, error)
+	UpdateMovie(ctx context.Context, req DbUpdateMovieRequest) (DbMovie, error)
 }
 
 type PgMovieStore struct {
@@ -78,11 +79,4 @@ type DbBook struct {
 type DbTVShow struct {
 	Media                 DbMedia
 	EpisodeRuntimeMinutes int
-}
-
-type DbStoreMovieRequest struct {
-	Name           string
-	Description    string
-	ReleaseDate    time.Time
-	RuntimeMinutes int
 }
